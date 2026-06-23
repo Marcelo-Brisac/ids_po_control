@@ -163,8 +163,30 @@ def po_form(request, pk=None):
 
 
 def po_pdf_view(request, pk):
-    po = get_object_or_404(PO, pk=pk)
-    return render(request, "procurement/po_pdf_view.html", {"po": po})
+    po = get_object_or_404(PO.objects.select_related("supplier", "issuer"), pk=pk)
+    items = po.items.all()
+    payment_terms = po.payment_terms.all()
+    issuer_accounts = po.issuer.bank_accounts.all()
+    supplier_accounts = po.supplier.bank_accounts.all()
+
+    currency = ""
+    total = sum(item.line_total for item in items)
+    if items:
+        currency = items.first().unit_price_currency
+
+    return render(
+        request,
+        "procurement/po_pdf_view.html",
+        {
+            "po": po,
+            "items": items,
+            "payment_terms": payment_terms,
+            "issuer_accounts": issuer_accounts,
+            "supplier_accounts": supplier_accounts,
+            "total": total,
+            "currency": currency,
+        },
+    )
 
 
 def po_pdf(request, pk):
