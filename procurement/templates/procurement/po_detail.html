@@ -1,0 +1,127 @@
+{% extends "procurement/base.html" %}
+
+{% block title %}PO {{ po.po_number }} - Procurement Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>PO {{ po.po_number }}</h1>
+    <div>
+        <a href="{% url 'po_edit' po.pk %}" class="btn btn-secondary">Edit</a>
+        <a href="{% url 'po_pdf_view' po.pk %}" class="btn btn-primary">Download PDF</a>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <div class="detail-section">
+            <h3>Order Information</h3>
+            <div class="detail-field"><span class="detail-label">PO Number:</span><span class="detail-value">{{ po.po_number }}</span></div>
+            <div class="detail-field"><span class="detail-label">Contract Number:</span><span class="detail-value">{{ po.contract_number|default:"—" }}</span></div>
+            <div class="detail-field"><span class="detail-label">Issue Date:</span><span class="detail-value">{{ po.issued_at|date:"M d, Y" }}</span></div>
+            <div class="detail-field"><span class="detail-label">Lead Time Requested:</span><span class="detail-value">{{ po.requested_delivery_date|date:"M d, Y"|default:"—" }}</span></div>
+            <div class="detail-field"><span class="detail-label">Warranty:</span><span class="detail-value">{{ po.warranty|default:"—" }}</span></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="detail-section">
+            <h3>Parties</h3>
+            <h4 style="font-size:0.85rem; color:#718096; margin-bottom:0.25rem;">ISSUER</h4>
+            <div class="detail-field"><span class="detail-label">Name:</span><span class="detail-value">{{ po.issuer.name }}</span></div>
+            <div class="detail-field"><span class="detail-label">Tax ID:</span><span class="detail-value">{{ po.issuer.tax_id }}</span></div>
+            <div class="detail-field"><span class="detail-label">Address:</span><span class="detail-value">{{ po.issuer.address }}</span></div>
+            <div class="detail-field"><span class="detail-label">Email:</span><span class="detail-value">{% for email in po.issuer.emails.all %}{{ email.email }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</span></div>
+            <h4 style="font-size:0.85rem; color:#718096; margin:1rem 0 0.25rem;">SUPPLIER</h4>
+            <div class="detail-field"><span class="detail-label">Name:</span><span class="detail-value">{{ po.supplier.name }}</span></div>
+            <div class="detail-field"><span class="detail-label">Tax ID:</span><span class="detail-value">{{ po.supplier.tax_id }}</span></div>
+            <div class="detail-field"><span class="detail-label">Address:</span><span class="detail-value">{{ po.supplier.address }}</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Items</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Model</th>
+                <th>Description</th>
+                <th class="text-right">Qty</th>
+                <th class="text-right">Unit Price</th>
+                <th class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in po.items.all %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ item.commercial_model_name }}</td>
+                <td>{{ item.description }}</td>
+                <td class="text-right">{{ item.quantity }}</td>
+                <td class="text-right">{{ item.unit_price|floatformat:2 }} {{ item.unit_price_currency }}</td>
+                <td class="text-right">{{ item.line_total|floatformat:2 }} {{ item.unit_price_currency }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5" class="text-right"><strong>Total:</strong></td>
+                <td class="text-right"><strong>{{ po.total|floatformat:2 }} {{ po.currency }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Payment Terms</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Event</th>
+                <th class="text-right">% Due</th>
+                <th>Expected Date</th>
+                <th class="text-right">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for term in po.payment_terms.all %}
+            <tr>
+                <td>{{ term.event_name }}</td>
+                <td class="text-right">{{ term.percentage_due }}%</td>
+                <td>{{ term.expected_date|date:"M d, Y" }}</td>
+                <td class="text-right">{{ po.total|floatformat:2|floatformat:2 }} × {{ term.percentage_due }}% = {{ term.percentage_due|floatformat:2 }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Bank Accounts</h2>
+    <div class="detail-grid">
+        <div>
+            <h3 style="font-size:1rem; margin-bottom:0.5rem;">Issuer</h3>
+            {% for acc in po.issuer.bank_accounts.all %}
+            <div style="padding:0.5rem; background:#f7fafc; border-radius:4px; margin-bottom:0.5rem;">
+                <strong>{{ acc.bank_name }}</strong><br>
+                {{ acc.account_number }} ({{ acc.account_currency }})
+            </div>
+            {% empty %}
+            <p class="text-muted">No bank accounts registered.</p>
+            {% endfor %}
+        </div>
+        <div>
+            <h3 style="font-size:1rem; margin-bottom:0.5rem;">Supplier</h3>
+            {% for acc in po.supplier.bank_accounts.all %}
+            <div style="padding:0.5rem; background:#f7fafc; border-radius:4px; margin-bottom:0.5rem;">
+                <strong>{{ acc.bank_name }}</strong><br>
+                {{ acc.account_number }} ({{ acc.account_currency }})
+            </div>
+            {% empty %}
+            <p class="text-muted">No bank accounts registered.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

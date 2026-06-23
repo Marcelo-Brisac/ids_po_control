@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "requirements": [
+    {
+      "slot_key": "microsoft_default",
+      "candidates": [
+        {
+          "provider": "microsoft"
+        }
+      ],
+      "required": true,
+      "tools": []
+    }
+  ]
+}

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Purchase Order {{ po.po_number }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #222;
+        }
+        h1 {
+            font-size: 22pt;
+            color: #1a365d;
+            margin: 0;
+        }
+        h2 {
+            font-size: 12pt;
+            color: #1a365d;
+            border-bottom: 2px solid #1a365d;
+            padding-bottom: 4px;
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+        h3 {
+            font-size: 10pt;
+            color: #4a5568;
+            margin-bottom: 6px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+        .header-left h1 {
+            margin-bottom: 4px;
+        }
+        .header-right {
+            text-align: right;
+            font-size: 9pt;
+            color: #4a5568;
+        }
+        .parties {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 20px;
+        }
+        .party {
+            flex: 1;
+        }
+        .party-label {
+            font-size: 8pt;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #718096;
+            margin-bottom: 6px;
+        }
+        .party-name {
+            font-weight: 700;
+            font-size: 11pt;
+            margin-bottom: 4px;
+        }
+        .party-detail {
+            font-size: 9pt;
+            color: #4a5568;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th {
+            background: #1a365d;
+            color: white;
+            padding: 8px 10px;
+            text-align: left;
+            font-size: 8.5pt;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 9.5pt;
+        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        tfoot td {
+            font-weight: 700;
+            border-top: 2px solid #1a365d;
+            border-bottom: none;
+        }
+        .info-row {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+            font-size: 9.5pt;
+        }
+        .info-item label {
+            font-size: 8pt;
+            text-transform: uppercase;
+            color: #718096;
+            display: block;
+        }
+        .info-item span {
+            font-weight: 500;
+        }
+        .bank-accounts {
+            display: flex;
+            gap: 40px;
+            margin-top: 10px;
+        }
+        .bank-accounts .party {
+            font-size: 9pt;
+        }
+        .footer-note {
+            margin-top: 40px;
+            font-size: 8pt;
+            color: #a0aec0;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-left">
+        <h1>PURCHASE ORDER</h1>
+        <div style="font-size: 11pt; color: #4a5568;">{{ po.po_number }}</div>
+    </div>
+    <div class="header-right">
+        <div>Issued: {{ po.issued_at|date:"M d, Y" }}</div>
+        {% if po.contract_number %}<div>Contract: {{ po.contract_number }}</div>{% endif %}
+    </div>
+</div>
+
+<div class="info-row">
+    {% if po.requested_delivery_date %}
+    <div class="info-item">
+        <label>Lead Time Requested</label>
+        <span>{{ po.requested_delivery_date|date:"M d, Y" }}</span>
+    </div>
+    {% endif %}
+    {% if po.warranty %}
+    <div class="info-item">
+        <label>Warranty</label>
+        <span>{{ po.warranty }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<div class="parties">
+    <div class="party">
+        <div class="party-label">From (Issuer)</div>
+        <div class="party-name">{{ po.issuer.name }}</div>
+        <div class="party-detail">
+            {{ po.issuer.address }}<br>
+            Tax ID: {{ po.issuer.tax_id }}<br>
+            {% for email in po.issuer.emails.all %}{{ email.email }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+        </div>
+    </div>
+    <div class="party">
+        <div class="party-label">To (Supplier)</div>
+        <div class="party-name">{{ po.supplier.name }}</div>
+        <div class="party-detail">
+            {{ po.supplier.address }}<br>
+            Tax ID: {{ po.supplier.tax_id }}
+        </div>
+    </div>
+</div>
+
+<h2>Items</h2>
+<table>
+    <thead>
+        <tr>
+            <th style="width: 5%">#</th>
+            <th style="width: 20%">Model</th>
+            <th style="width: 35%">Description</th>
+            <th style="width: 10%" class="text-center">Qty</th>
+            <th style="width: 15%" class="text-right">Unit Price</th>
+            <th style="width: 15%" class="text-right">Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ item.commercial_model_name }}</td>
+            <td>{{ item.description }}</td>
+            <td class="text-center">{{ item.quantity }}</td>
+            <td class="text-right">{{ item.unit_price|floatformat:2 }} {{ item.unit_price_currency }}</td>
+            <td class="text-right">{{ item.line_total|floatformat:2 }} {{ item.unit_price_currency }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="5" class="text-right">TOTAL:</td>
+            <td class="text-right">{{ po.total|floatformat:2 }} {{ currency }}</td>
+        </tr>
+    </tfoot>
+</table>
+
+<h2>Payment Terms</h2>
+<table>
+    <thead>
+        <tr>
+            <th style="width: 40%">Event</th>
+            <th style="width: 25%" class="text-right">% Due</th>
+            <th style="width: 35%">Expected Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for term in payment_terms %}
+        <tr>
+            <td>{{ term.event_name }}</td>
+            <td class="text-right">{{ term.percentage_due }}%</td>
+            <td>{{ term.expected_date|date:"M d, Y" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if issuer_accounts or supplier_accounts %}
+<h2>Bank Accounts</h2>
+<div class="bank-accounts">
+    <div class="party">
+        <div class="party-label">Issuer</div>
+        {% for acc in issuer_accounts %}
+        <div><strong>{{ acc.bank_name }}</strong><br>{{ acc.account_number }} ({{ acc.account_currency }})</div>
+        {% endfor %}
+    </div>
+    <div class="party">
+        <div class="party-label">Supplier</div>
+        {% for acc in supplier_accounts %}
+        <div><strong>{{ acc.bank_name }}</strong><br>{{ acc.account_number }} ({{ acc.account_currency }})</div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="footer-note">
+    This document was generated by the Procurement Portal.
+</div>
+
+</body>
+</html>

@@ -1,0 +1,46 @@
+{% extends "procurement/base.html" %}
+
+{% block title %}Purchase Orders - Procurement Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Purchase Orders</h1>
+    <a href="{% url 'po_create' %}" class="btn btn-primary">+ New PO</a>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>PO Number</th>
+                <th>Supplier</th>
+                <th>Issue Date</th>
+                <th>Lead Time Requested</th>
+                <th class="text-right">Total</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for po in pos %}
+            <tr>
+                <td><a href="{% url 'po_detail' po.pk %}">{{ po.po_number }}</a></td>
+                <td>{{ po.supplier.name }}</td>
+                <td>{{ po.issued_at|date:"M d, Y" }}</td>
+                <td>{{ po.requested_delivery_date|date:"M d, Y"|default:"—" }}</td>
+                <td class="text-right">{{ po.total|floatformat:2 }}</td>
+                <td>
+                    <a href="{% url 'po_edit' po.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+                    <a href="{% url 'po_pdf_view' po.pk %}" class="btn btn-secondary btn-sm">PDF</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 2rem; color: #718096;">
+                    No purchase orders yet. <a href="{% url 'po_create' %}">Create one</a>.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+[project]
+name = "global-markets"
+version = "0.1.0"
+description = "Global equities (stocks/ETFs/indices/FX) + global futures + per-name research (options, fundamentals, holders). Stdlib for price tape; yfinance for research."
+requires-python = ">=3.10"
+dependencies = [
+    "yfinance>=0.2.66",
+]
