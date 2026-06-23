@@ -1,8 +1,0 @@
-[project]
-name = "crypto-markets"
-version = "0.1.0"
-description = "Crypto market data — spot/derivatives (Binance/Bybit/OKX), on-chain (BTC stats, DefiLlama TVL/stables), and news (RSS aggregation). Keyless. Stdlib for hot paths; feedparser for news."
-requires-python = ">=3.10"
-dependencies = [
-    "feedparser>=6.0,<7",
-]

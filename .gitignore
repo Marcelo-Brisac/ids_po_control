@@ -1,12 +1,19 @@
-# Byte-compiled / optimized / DLL files
+# Django stuff:
+*.log
+db.sqlite3
+
+# Environment variables & pip stuff
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
-
-# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -24,29 +31,20 @@ wheels/
 .installed.cfg
 *.egg
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-
-# Environment variables & pip stuff
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# PyCharm
+# IDE
 .idea/
-
-# VS Code
 .vscode/
+*.swp
+*.swo
 
-# macOS
+# OS
 .DS_Store
+Thumbs.db
 
-# Migrations (optional - descomente se quiser ignorar)
-# **/migrations/*.py
-# !**/migrations/__init__.py
+# MuleRun/Claude/OpenCode skills and config
+.claude/
+.opencode/
+.mulerun.env
+
+# Output files
+output/

@@ -1,8 +1,0 @@
-[project]
-name = "cn-markets"
-version = "0.1.0"
-description = "Chinese markets — A-share, HK, CN indices, CN onshore futures + per-name research (fundamentals, 龙虎榜, 大宗交易, 解禁, 股东, 回购, 分红, 新股, ETF, 可转债), CN macro (CPI/PPI/GDP/M2/PMI/社融), CN ETF + index options. Stdlib for price tape; akshare for research/macro/options."
-requires-python = ">=3.10"
-dependencies = [
-    "akshare>=1.18.64",
-]

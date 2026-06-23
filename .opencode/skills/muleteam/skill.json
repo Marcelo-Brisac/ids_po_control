@@ -1,6 +1,0 @@
-{
-  "name": "muleteam",
-  "description": "MuleTeam collaboration CLI — read/write messages, files, and tasks in team threads",
-  "version": "0.6.1",
-  "enabled": true
-}

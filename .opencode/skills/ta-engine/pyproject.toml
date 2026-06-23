@@ -1,8 +1,0 @@
-[project]
-name = "ta-engine"
-version = "0.1.0"
-description = "Technical-analysis indicator engine over any OHLCV array — RSI/MACD/EMA/BBands/ATR/VWAP/StochRSI/Ichimoku/SuperTrend/etc. Asset-agnostic: feed klines from crypto-markets, global-markets, or cn-markets. Uses pandas-ta (lazy-imported)."
-requires-python = ">=3.12"
-dependencies = [
-    "pandas-ta>=0.4.71b0",
-]
