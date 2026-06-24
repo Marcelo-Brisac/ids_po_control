@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ids_po_db
+    environment:
+      POSTGRES_DB: ids_po_control
+      POSTGRES_USER: ids_po_user
+      POSTGRES_PASSWORD: ids_po_password_2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ids_po_user -d ids_po_control"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: ids_po_web
+    volumes:
+      - static_volume:/app/staticfiles
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=postgres://ids_po_user:ids_po_password_2026@db:5432/ids_po_control
+      - SECRET_KEY=django-insecure-change-me-in-production-xyz123abc456
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  static_volume:

@@ -10,6 +10,70 @@ Sistema de gerenciamento de Purchase Orders (POs) desenvolvido em Django.
 - **Itens e Termos de Pagamento**: Adicionar múltiplos itens e condições de pagamento por PO
 - **Admin Interface**: Interface administrativa para gestão de dados mestres
 
+## Instalação Rápida com Docker (Recomendado)
+
+A maneira mais fácil de rodar o sistema é usando Docker Compose:
+
+```bash
+git clone https://github.com/Marcelo-Brisac/ids_po_control.git
+cd ids_po_control
+docker-compose up -d
+```
+
+Acesse:
+- Portal: http://localhost:8000
+- Admin: http://localhost:8000/admin
+- Login: `admin` / `admin123`
+
+Veja [DOCKER_README.md](DOCKER_README.md) para instruções completas sobre Docker.
+
+## Instalação Manual (sem Docker)
+
+### Requisitos
+
+- Python 3.13+
+- SQLite (padrão) ou PostgreSQL
+
+### Passos
+
+1. Clone o repositório:
+```bash
+git clone https://github.com/Marcelo-Brisac/ids_po_control.git
+cd ids_po_control
+```
+
+2. Crie um ambiente virtual e ative:
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# ou
+venv\Scripts\activate  # Windows
+```
+
+3. Instale as dependências:
+```bash
+pip install -r requirements.txt
+```
+
+4. Execute as migrações do banco de dados:
+```bash
+python manage.py migrate
+```
+
+5. Crie um superusuário para acessar o admin:
+```bash
+python manage.py createsuperuser
+```
+
+6. Inicie o servidor de desenvolvimento:
+```bash
+python manage.py runserver
+```
+
+7. Acesse:
+   - Portal: http://127.0.0.1:8000/
+   - Admin: http://127.0.0.1:8000/admin/
+
 ## Estrutura do Banco de Dados
 
 ### Issuer (Emitente)

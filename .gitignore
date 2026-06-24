@@ -1,8 +1,4 @@
-# Django stuff:
-*.log
-db.sqlite3
-
-# Environment variables & pip stuff
+# Environment
 .env
 .venv
 env/
@@ -31,6 +27,11 @@ wheels/
 .installed.cfg
 *.egg
 
+# Django
+*.log
+db.sqlite3
+staticfiles/
+
 # IDE
 .idea/
 .vscode/
@@ -40,6 +41,9 @@ wheels/
 # OS
 .DS_Store
 Thumbs.db
+
+# Docker volumes (don't commit)
+postgres_data/
 
 # MuleRun/Claude/OpenCode skills and config
 .claude/
