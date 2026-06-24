@@ -19,6 +19,10 @@ services:
   web:
     build: .
     container_name: ids_po_web
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn portal.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120"
     volumes:
       - static_volume:/app/staticfiles
     ports:

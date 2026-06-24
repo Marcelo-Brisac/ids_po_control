@@ -26,11 +26,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . .
 
-# Make entrypoint executable
-RUN chmod +x /app/entrypoint.sh
-
 # Expose port
 EXPOSE 8000
 
-# Set entrypoint
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Default command (can be overridden in docker-compose.yml)
+CMD ["gunicorn", "portal.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
