@@ -6,10 +6,30 @@
 <div class="page-header">
     <h1>PO {{ po.po_number }}</h1>
     <div>
+        {% if po.is_locked %}
+        <span class="btn btn-secondary" style="opacity:.45; cursor:not-allowed;" title="PO is locked — sent for signature">Edit</span>
+        {% else %}
         <a href="{% url 'po_edit' po.pk %}" class="btn btn-secondary">Edit</a>
-        <a href="{% url 'po_pdf_view' po.pk %}" class="btn btn-primary">Download PDF</a>
+        {% endif %}
+        <a href="{% url 'po_pdf_versions' po.pk %}" class="btn btn-primary">Manage PDF</a>
+        {% if po.is_signed %}
+            {% if po.sienge_bill_id %}
+            <span class="btn btn-secondary" style="opacity:.45; cursor:not-allowed;">&#10003; Sent to Sienge</span>
+            {% else %}
+            <form method="post" action="{% url 'po_sienge_send' po.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary" onclick="return confirm('Create bill in Sienge accounts payable for PO {{ po.po_number }}?')">Send to Sienge</button>
+            </form>
+            {% endif %}
+        {% endif %}
     </div>
 </div>
+
+{% if po.is_locked %}
+<div style="background:#fff3cd; border:1px solid #ffc107; border-radius:6px; padding:.6rem 1rem; margin-bottom:1rem; font-size:.875rem; color:#856404;">
+    This PO is <strong>locked</strong> — it has been sent for signature and can no longer be edited.
+</div>
+{% endif %}
 
 <div class="detail-grid">
     <div class="card">
@@ -19,7 +39,11 @@
             <div class="detail-field"><span class="detail-label">Contract Number:</span><span class="detail-value">{{ po.contract_number|default:"—" }}</span></div>
             <div class="detail-field"><span class="detail-label">Issue Date:</span><span class="detail-value">{{ po.issued_at|date:"M d, Y" }}</span></div>
             <div class="detail-field"><span class="detail-label">Lead Time Requested:</span><span class="detail-value">{{ po.requested_delivery_date|date:"M d, Y"|default:"—" }}</span></div>
+            <div class="detail-field"><span class="detail-label">Incoterms:</span><span class="detail-value">{{ po.get_incoterms_display|default:"—" }}</span></div>
+            <div class="detail-field"><span class="detail-label">Port:</span><span class="detail-value">{{ po.port|default:"—" }}</span></div>
             <div class="detail-field"><span class="detail-label">Warranty:</span><span class="detail-value">{{ po.warranty|default:"—" }}</span></div>
+            <div class="detail-field"><span class="detail-label">Primary Signer:</span><span class="detail-value">{{ po.signer_primary.name|default:"—" }}</span></div>
+            {% if po.signer_secondary %}<div class="detail-field"><span class="detail-label">Secondary Signer:</span><span class="detail-value">{{ po.signer_secondary.name }}</span></div>{% endif %}
         </div>
     </div>
 
@@ -103,9 +127,19 @@
         <div>
             <h3 style="font-size:1rem; margin-bottom:0.5rem;">Issuer</h3>
             {% for acc in po.issuer.bank_accounts.all %}
-            <div style="padding:0.5rem; background:#f7fafc; border-radius:4px; margin-bottom:0.5rem;">
-                <strong>{{ acc.bank_name }}</strong><br>
-                {{ acc.account_number }} ({{ acc.account_currency }})
+            <div style="padding:0.5rem; background:#f7fafc; border-radius:4px; margin-bottom:0.5rem; font-size:0.875rem;">
+                {% if acc.intermediate_bank_name %}
+                <div style="margin-bottom:0.4rem;"><span style="color:#718096; font-size:0.8rem;">Intermediate Bank</span><br>
+                <strong>{{ acc.intermediate_bank_name }}</strong>{% if acc.intermediate_bank_address %} — {{ acc.intermediate_bank_address }}{% endif %}{% if acc.intermediate_bank_swift_address %}<br>SWIFT: {{ acc.intermediate_bank_swift_address }}{% endif %}{% if acc.intermediate_bank_fed_aba %}<br>FED/ABA: {{ acc.intermediate_bank_fed_aba }}{% endif %}</div>
+                {% endif %}
+                {% if acc.beneficiary_bank_name %}
+                <div style="margin-bottom:0.4rem;"><span style="color:#718096; font-size:0.8rem;">Beneficiary Bank</span><br>
+                <strong>{{ acc.beneficiary_bank_name }}</strong>{% if acc.beneficiary_bank_address %} — {{ acc.beneficiary_bank_address }}{% endif %}{% if acc.beneficiary_bank_swift_address %}<br>SWIFT: {{ acc.beneficiary_bank_swift_address }}{% endif %}{% if acc.beneficiary_bank_account_number %}<br>Account: {{ acc.beneficiary_bank_account_number }}{% endif %}{% if acc.beneficiary_bank_iban %}<br>IBAN: {{ acc.beneficiary_bank_iban }}{% endif %}</div>
+                {% endif %}
+                {% if acc.beneficiary_customer_name %}
+                <div><span style="color:#718096; font-size:0.8rem;">Beneficiary Customer</span><br>
+                <strong>{{ acc.beneficiary_customer_name }}</strong>{% if acc.beneficiary_customer_address %} — {{ acc.beneficiary_customer_address }}{% endif %}{% if acc.beneficiary_customer_branch %}<br>Branch: {{ acc.beneficiary_customer_branch }}{% endif %}{% if acc.beneficiary_customer_account %}<br>Account: {{ acc.beneficiary_customer_account }}{% endif %}</div>
+                {% endif %}
             </div>
             {% empty %}
             <p class="text-muted">No bank accounts registered.</p>
@@ -114,9 +148,19 @@
         <div>
             <h3 style="font-size:1rem; margin-bottom:0.5rem;">Supplier</h3>
             {% for acc in po.supplier.bank_accounts.all %}
-            <div style="padding:0.5rem; background:#f7fafc; border-radius:4px; margin-bottom:0.5rem;">
-                <strong>{{ acc.bank_name }}</strong><br>
-                {{ acc.account_number }} ({{ acc.account_currency }})
+            <div style="padding:0.5rem; background:#f7fafc; border-radius:4px; margin-bottom:0.5rem; font-size:0.875rem;">
+                {% if acc.intermediate_bank_name %}
+                <div style="margin-bottom:0.4rem;"><span style="color:#718096; font-size:0.8rem;">Intermediate Bank</span><br>
+                <strong>{{ acc.intermediate_bank_name }}</strong>{% if acc.intermediate_bank_address %} — {{ acc.intermediate_bank_address }}{% endif %}{% if acc.intermediate_bank_swift_address %}<br>SWIFT: {{ acc.intermediate_bank_swift_address }}{% endif %}{% if acc.intermediate_bank_fed_aba %}<br>FED/ABA: {{ acc.intermediate_bank_fed_aba }}{% endif %}</div>
+                {% endif %}
+                {% if acc.beneficiary_bank_name %}
+                <div style="margin-bottom:0.4rem;"><span style="color:#718096; font-size:0.8rem;">Beneficiary Bank</span><br>
+                <strong>{{ acc.beneficiary_bank_name }}</strong>{% if acc.beneficiary_bank_address %} — {{ acc.beneficiary_bank_address }}{% endif %}{% if acc.beneficiary_bank_swift_address %}<br>SWIFT: {{ acc.beneficiary_bank_swift_address }}{% endif %}{% if acc.beneficiary_bank_account_number %}<br>Account: {{ acc.beneficiary_bank_account_number }}{% endif %}{% if acc.beneficiary_bank_iban %}<br>IBAN: {{ acc.beneficiary_bank_iban }}{% endif %}</div>
+                {% endif %}
+                {% if acc.beneficiary_customer_name %}
+                <div><span style="color:#718096; font-size:0.8rem;">Beneficiary Customer</span><br>
+                <strong>{{ acc.beneficiary_customer_name }}</strong>{% if acc.beneficiary_customer_address %} — {{ acc.beneficiary_customer_address }}{% endif %}{% if acc.beneficiary_customer_branch %}<br>Branch: {{ acc.beneficiary_customer_branch }}{% endif %}{% if acc.beneficiary_customer_account %}<br>Account: {{ acc.beneficiary_customer_account }}{% endif %}</div>
+                {% endif %}
             </div>
             {% empty %}
             <p class="text-muted">No bank accounts registered.</p>

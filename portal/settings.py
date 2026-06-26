@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
     "procurement",
 ]
 
@@ -170,3 +171,17 @@ CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
 
 # Allow PDF downloads in iframe preview
 X_FRAME_OPTIONS = "SAMEORIGIN"
+
+# Autentique digital signature API
+AUTENTIQUE_API_KEY = config("AUTENTIQUE_API_KEY", default="")
+AUTENTIQUE_FOLDER = config("AUTENTIQUE_FOLDER", default="")
+AUTENTIQUE_WEBHOOK_SECRET = config("AUTENTIQUE_WEBHOOK_SECRET", default="")
+
+# Microsoft Graph API — email sending
+GRAPH_TENANT_ID = config("GRAPH_TENANT_ID", default="")
+GRAPH_CLIENT_ID = config("GRAPH_CLIENT_ID", default="")
+GRAPH_CLIENT_SECRET = config("GRAPH_CLIENT_SECRET", default="")
+GRAPH_SENDER_EMAIL = config("GRAPH_SENDER_EMAIL", default="")
+
+# Sienge ERP API
+SIENGE_AUTH_KEY = config("SIENGE_AUTH_KEY", default="")

@@ -30,7 +30,7 @@
                 <td class="text-right">{{ po.total|floatformat:2 }}</td>
                 <td>
                     <a href="{% url 'po_edit' po.pk %}" class="btn btn-secondary btn-sm">Edit</a>
-                    <a href="{% url 'po_pdf_view' po.pk %}" class="btn btn-secondary btn-sm">PDF</a>
+                    <a href="{% url 'po_pdf_versions' po.pk %}" class="btn btn-secondary btn-sm">PDF</a>
                 </td>
             </tr>
             {% empty %}

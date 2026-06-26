@@ -14,8 +14,20 @@
         <h2>Order Details</h2>
         <div class="form-row">
             <div class="form-group">
+                <label for="product">Product *</label>
+                <select id="product" name="product" required>
+                    <option value="">— Select product —</option>
+                    {% for p in products %}
+                    <option value="{{ p.pk }}" data-code="{{ p.code }}" {% if po.product_id == p.pk %}selected{% endif %}>{{ p.code }} – {{ p.description }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="po_number">PO Number *</label>
-                <input type="text" id="po_number" name="po_number" value="{{ po.po_number|default:'' }}" required>
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <input type="text" id="po_number" name="po_number" value="{{ po.po_number|default:'' }}" required style="flex:1;">
+                    <button type="button" id="btn-suggest-po" class="btn btn-secondary btn-sm" style="white-space:nowrap;">Suggest</button>
+                </div>
             </div>
             <div class="form-group">
                 <label for="contract_number">Contract Number</label>
@@ -52,8 +64,47 @@
                 <input type="date" id="requested_delivery_date" name="requested_delivery_date" value="{{ po.requested_delivery_date|date:'Y-m-d'|default:'' }}">
             </div>
             <div class="form-group">
+                <label for="incoterms">Incoterms</label>
+                <select id="incoterms" name="incoterms">
+                    <option value="">— Select —</option>
+                    <option value="EXW" {% if po.incoterms == 'EXW' %}selected{% endif %}>EXW – Ex Works</option>
+                    <option value="FCA" {% if po.incoterms == 'FCA' %}selected{% endif %}>FCA – Free Carrier</option>
+                    <option value="CPT" {% if po.incoterms == 'CPT' %}selected{% endif %}>CPT – Carriage Paid To</option>
+                    <option value="CIP" {% if po.incoterms == 'CIP' %}selected{% endif %}>CIP – Carriage and Insurance Paid To</option>
+                    <option value="DAP" {% if po.incoterms == 'DAP' %}selected{% endif %}>DAP – Delivered at Place</option>
+                    <option value="DPU" {% if po.incoterms == 'DPU' %}selected{% endif %}>DPU – Delivered at Place Unloaded</option>
+                    <option value="DDP" {% if po.incoterms == 'DDP' %}selected{% endif %}>DDP – Delivered Duty Paid</option>
+                    <option value="FAS" {% if po.incoterms == 'FAS' %}selected{% endif %}>FAS – Free Alongside Ship</option>
+                    <option value="FOB" {% if po.incoterms == 'FOB' %}selected{% endif %}>FOB – Free on Board</option>
+                    <option value="CFR" {% if po.incoterms == 'CFR' %}selected{% endif %}>CFR – Cost and Freight</option>
+                    <option value="CIF" {% if po.incoterms == 'CIF' %}selected{% endif %}>CIF – Cost Insurance and Freight</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="port">Port</label>
+                <input type="text" id="port" name="port" value="{{ po.port|default:'' }}">
+            </div>
+            <div class="form-group">
                 <label for="warranty">Warranty</label>
                 <input type="text" id="warranty" name="warranty" value="{{ po.warranty|default:'' }}">
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Signatories</h2>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="signer_primary">Primary Signer *</label>
+                <select id="signer_primary" name="signer_primary" required>
+                    <option value="">— Select issuer first —</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="signer_secondary">Secondary Signer</label>
+                <select id="signer_secondary" name="signer_secondary">
+                    <option value="">— None —</option>
+                </select>
             </div>
         </div>
     </div>
@@ -135,6 +186,25 @@
     </div>
 </form>
 
+{# ── PO Number Suggest Modal ── #}
+<div id="suggest-modal-backdrop" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); align-items:center; justify-content:center; z-index:1000;">
+  <div style="background:#fff; border-radius:8px; padding:2rem; max-width:420px; width:90%; box-shadow:0 8px 32px rgba(0,0,0,.2);">
+    <h2 style="margin:0 0 1.25rem; font-size:1.1rem; color:#1a365d;">Suggest PO Number</h2>
+
+    <div id="suggest-preview" style="display:none; margin-bottom:1.25rem; padding:.75rem 1rem; background:#f0f4f8; border-radius:6px; border-left:3px solid #1a56db;">
+      <div style="font-size:.75rem; color:#718096; margin-bottom:.2rem;">Suggested number</div>
+      <div id="suggest-result" style="font-size:1.05rem; font-weight:700; font-family:monospace; color:#1a365d;"></div>
+    </div>
+
+    <div id="suggest-error" style="display:none; margin-bottom:1rem; color:#c53030; font-size:.875rem;"></div>
+
+    <div style="display:flex; gap:.75rem; justify-content:flex-end;">
+      <button type="button" id="suggest-cancel" class="btn btn-secondary">Cancel</button>
+      <button type="button" id="suggest-use" class="btn btn-primary" disabled>Use this number</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function() {
     let itemCount = parseInt(document.getElementById('item-count').value) || 0;
@@ -211,6 +281,113 @@
 
     calcTotals();
     checkPercentages();
+
+    // Signatories filtering
+    const legalRepsData = {{ legal_reps_json|safe }};
+    const signerPrimary = document.getElementById('signer_primary');
+    const signerSecondary = document.getElementById('signer_secondary');
+    const currentPrimary = "{{ po.signer_primary_id|default:'' }}";
+    const currentSecondary = "{{ po.signer_secondary_id|default:'' }}";
+
+    function populateSigners(issuerId) {
+        const reps = legalRepsData[issuerId] || [];
+        [signerPrimary, signerSecondary].forEach((sel, idx) => {
+            const current = idx === 0 ? currentPrimary : currentSecondary;
+            const placeholder = idx === 0 ? '— Select —' : '— None —';
+            sel.innerHTML = `<option value="">${placeholder}</option>`;
+            reps.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.id;
+                opt.textContent = r.name;
+                if (String(r.id) === String(current)) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        });
+    }
+
+    const issuerSelect = document.getElementById('issuer');
+    issuerSelect.addEventListener('change', () => populateSigners(issuerSelect.value));
+    if (issuerSelect.value) populateSigners(issuerSelect.value);
+
+    // ── PO Number Suggest ──
+    const issuerMeta = {{ issuer_meta_json|safe }};
+    const backdrop = document.getElementById('suggest-modal-backdrop');
+    const productSel = document.getElementById('product');
+    const preview = document.getElementById('suggest-preview');
+    const resultEl = document.getElementById('suggest-result');
+    const errorEl = document.getElementById('suggest-error');
+    const useBtn = document.getElementById('suggest-use');
+
+    document.getElementById('btn-suggest-po').addEventListener('click', () => {
+        preview.style.display = 'none';
+        errorEl.style.display = 'none';
+        useBtn.disabled = true;
+        backdrop.style.display = 'flex';
+        fetchSuggestion();
+    });
+
+    document.getElementById('suggest-cancel').addEventListener('click', () => {
+        backdrop.style.display = 'none';
+    });
+
+    backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.style.display = 'none'; });
+
+    function fetchSuggestion() {
+        const issuerId = issuerSelect.value;
+        const selectedOption = productSel.options[productSel.selectedIndex];
+        const productCode = selectedOption ? selectedOption.dataset.code : '';
+
+        if (!issuerId) {
+            errorEl.textContent = 'Select an issuer first.';
+            errorEl.style.display = 'block';
+            preview.style.display = 'none';
+            useBtn.disabled = true;
+            return;
+        }
+        if (!productCode) {
+            errorEl.textContent = 'Select a product first.';
+            errorEl.style.display = 'block';
+            preview.style.display = 'none';
+            useBtn.disabled = true;
+            return;
+        }
+
+        const meta = issuerMeta[issuerId];
+        if (!meta || !meta.prefix || !meta.suffix) {
+            errorEl.textContent = 'The selected issuer has no PO prefix/suffix configured.';
+            errorEl.style.display = 'block';
+            preview.style.display = 'none';
+            useBtn.disabled = true;
+            return;
+        }
+        errorEl.style.display = 'none';
+
+        const issueDate = document.getElementById('issued_at').value;
+        const url = `{% url 'po_suggest_number' %}?issuer_id=${issuerId}&product_code=${encodeURIComponent(productCode)}&date=${issueDate}`;
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    errorEl.textContent = data.error;
+                    errorEl.style.display = 'block';
+                    preview.style.display = 'none';
+                    useBtn.disabled = true;
+                } else {
+                    resultEl.textContent = data.suggested;
+                    preview.style.display = 'block';
+                    useBtn.disabled = false;
+                }
+            })
+            .catch(() => {
+                errorEl.textContent = 'Error fetching suggestion. Please try again.';
+                errorEl.style.display = 'block';
+            });
+    }
+
+    useBtn.addEventListener('click', () => {
+        document.getElementById('po_number').value = resultEl.textContent;
+        backdrop.style.display = 'none';
+    });
 })();
 </script>
 {% endblock %}

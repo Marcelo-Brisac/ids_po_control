@@ -1,0 +1,17 @@
+services:
+  web:
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py shell -c \"from django.contrib.auth.models import User; User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', '', 'admin123')\" &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=postgres://ids_po_user:ids_po_password_2026@db:5432/ids_po_control
+      - SECRET_KEY=django-insecure-change-me-in-production-xyz123abc456
+      - ALLOWED_HOSTS=localhost,127.0.0.1,*
+      - AUTENTIQUE_API_KEY=${AUTENTIQUE_API_KEY:-}
+      - AUTENTIQUE_FOLDER=${AUTENTIQUE_FOLDER:-}
+      - AUTENTIQUE_WEBHOOK_SECRET=${AUTENTIQUE_WEBHOOK_SECRET:-}

@@ -1,0 +1,26 @@
+{% extends "procurement/base.html" %}
+
+{% block title %}Generate PDF – PO {{ po.po_number }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Generate PDF – {{ po.po_number }}</h1>
+    <a href="{% url 'po_detail' po.pk %}" class="btn btn-secondary">← Back to PO</a>
+</div>
+
+<div class="card" style="max-width:480px;">
+    <h2>Select Template</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div style="margin-bottom:1.5rem;">
+            {% for tpl in templates %}
+            <label style="display:flex; align-items:center; gap:10px; padding:12px; border:1px solid #e2e8f0; border-radius:6px; margin-bottom:8px; cursor:pointer;">
+                <input type="radio" name="template_id" value="{{ tpl.id }}" {% if forloop.first %}checked{% endif %}>
+                <span style="font-weight:500;">{{ tpl.label }}</span>
+            </label>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary">Generate &amp; Save PDF</button>
+    </form>
+</div>
+{% endblock %}
