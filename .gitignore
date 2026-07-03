@@ -45,6 +45,9 @@ Thumbs.db
 # Docker volumes (don't commit)
 postgres_data/
 
+# Local server overrides (port conflicts, environment-specific)
+docker-compose.override.yml
+
 # MuleRun/Claude/OpenCode skills and config
 .claude/
 .opencode/
