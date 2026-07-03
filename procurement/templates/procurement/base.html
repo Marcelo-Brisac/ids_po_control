@@ -4,13 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Procurement Portal{% endblock %}</title>
+    <title>{% block title %}Pigeon Procurement{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'procurement/css/style.css' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'procurement/images/favicon.png' %}">
+    <link rel="icon" type="image/png" sizes="64x64" href="{% static 'procurement/images/icon_64.png' %}">
+    <link rel="icon" type="image/png" sizes="128x128" href="{% static 'procurement/images/icon_128.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'procurement/images/icon_180.png' %}">
 </head>
 <body>
     <nav class="navbar">
         <div class="container">
-            <a href="{% url 'po_list' %}" class="brand">Procurement Portal</a>
+            <a href="{% url 'po_list' %}" class="brand">Pigeon Procurement</a>
             <div class="nav-links">
                 <a href="{% url 'po_list' %}">Purchase Orders</a>
                 <a href="/admin/">Admin</a>
@@ -37,7 +41,7 @@
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2026 Procurement Portal</p>
+            <p>&copy; 2026 Pigeon Procurement</p>
         </div>
     </footer>
 </body>
