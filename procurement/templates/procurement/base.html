@@ -10,6 +10,7 @@
     <link rel="icon" type="image/png" sizes="64x64" href="{% static 'procurement/images/icon_64.png' %}">
     <link rel="icon" type="image/png" sizes="128x128" href="{% static 'procurement/images/icon_128.png' %}">
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'procurement/images/icon_180.png' %}">
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
     <nav class="navbar">
