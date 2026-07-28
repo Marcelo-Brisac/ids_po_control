@@ -161,10 +161,27 @@
 
     <div class="card">
         <h2>Sienge</h2>
+        <script>
+            const obraMap = {{ sienge_obra_cost_centers_json|safe }};
+        </script>
         <div class="form-row">
             <div class="form-group">
-                <label for="sienge_cost_center_id">Cost Center ID</label>
-                <input type="number" id="sienge_cost_center_id" name="sienge_cost_center_id" value="{{ po.sienge_cost_center_id|default:'' }}">
+                <label for="sienge_obra_id">Obra</label>
+                <select id="sienge_obra_id" name="sienge_obra_id">
+                    <option value="">— Selecione a obra —</option>
+                    {% for obra in sienge_obras %}
+                        <option value="{{ obra.id }}"{% if po.sienge_obra_id|stringformat:"s" == obra.id|stringformat:"s" %} selected{% endif %}>{{ obra.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="sienge_cost_center_id">Cost Center</label>
+                <select id="sienge_cost_center_id" name="sienge_cost_center_id">
+                    <option value="">— Selecione o cost center —</option>
+                    {% if po.sienge_cost_center_id %}
+                        <option value="{{ po.sienge_cost_center_id }}" selected>{{ po.sienge_cost_center_id }}</option>
+                    {% endif %}
+                </select>
             </div>
             <div class="form-group">
                 <label for="sienge_department_id">Department</label>
@@ -186,6 +203,34 @@
             </div>
         </div>
     </div>
+    <script>
+        (function () {
+            const obraSelect = document.getElementById('sienge_obra_id');
+            const ccSelect   = document.getElementById('sienge_cost_center_id');
+            const savedCcId  = "{{ po.sienge_cost_center_id|default:'' }}";
+
+            function populateCostCenters(obraId, selectValue) {
+                const ccs = obraMap[obraId] || [];
+                ccSelect.innerHTML = '<option value="">— Selecione o cost center —</option>';
+                ccs.forEach(function (cc) {
+                    const opt = document.createElement('option');
+                    opt.value = cc.id;
+                    opt.textContent = cc.name;
+                    if (String(cc.id) === String(selectValue)) opt.selected = true;
+                    ccSelect.appendChild(opt);
+                });
+            }
+
+            obraSelect.addEventListener('change', function () {
+                populateCostCenters(this.value, '');
+            });
+
+            // On page load: if obra already selected, populate cost centers and restore saved value
+            if (obraSelect.value) {
+                populateCostCenters(obraSelect.value, savedCcId);
+            }
+        })();
+    </script>
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">{% if po %}Update PO{% else %}Create PO{% endif %}</button>

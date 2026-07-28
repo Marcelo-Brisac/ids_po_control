@@ -104,6 +104,7 @@ def po_form(request, pk=None):
             "warranty": request.POST.get("warranty", "").strip(),
             "signer_primary_id": request.POST.get("signer_primary") or None,
             "signer_secondary_id": request.POST.get("signer_secondary") or None,
+            "sienge_obra_id": request.POST.get("sienge_obra_id") or None,
             "sienge_cost_center_id": request.POST.get("sienge_cost_center_id") or None,
             "sienge_department_id": request.POST.get("sienge_department_id") or None,
             "sienge_payment_category_id": request.POST.get("sienge_payment_category_id") or None,
@@ -168,7 +169,7 @@ def po_form(request, pk=None):
         if errors:
             for e in errors:
                 messages.error(request, e)
-            from procurement.sienge_db import get_departments, get_payment_categories
+            from procurement.sienge_db import get_departments, get_obras, get_obra_cost_centers_map, get_payment_categories
             issuers = Issuer.objects.all()
             suppliers = Supplier.objects.all()
             return render(
@@ -184,6 +185,8 @@ def po_form(request, pk=None):
                     "issuer_meta_json": _issuer_meta_json(),
                     "products": Product.objects.all(),
                     "sienge_departments": get_departments(),
+                    "sienge_obras": get_obras(),
+                    "sienge_obra_cost_centers_json": json.dumps(get_obra_cost_centers_map()),
                     "sienge_payment_categories": get_payment_categories(),
                 },
             )
@@ -201,6 +204,7 @@ def po_form(request, pk=None):
             po.warranty = po_data["warranty"]
             po.signer_primary_id = po_data["signer_primary_id"]
             po.signer_secondary_id = po_data["signer_secondary_id"]
+            po.sienge_obra_id = po_data["sienge_obra_id"]
             po.sienge_cost_center_id = po_data["sienge_cost_center_id"]
             po.sienge_department_id = po_data["sienge_department_id"]
             po.sienge_payment_category_id = po_data["sienge_payment_category_id"]
@@ -219,10 +223,7 @@ def po_form(request, pk=None):
         messages.success(request, f"PO {po.po_number} saved successfully.")
         return redirect("po_detail", pk=po.pk)
 
-    from procurement.sienge_db import get_departments, get_payment_categories
-    sienge_departments = get_departments()
-    sienge_payment_categories = get_payment_categories()
-
+    from procurement.sienge_db import get_departments, get_obras, get_obra_cost_centers_map, get_payment_categories
     issuers = Issuer.objects.all()
     suppliers = Supplier.objects.all()
     return render(
@@ -237,8 +238,10 @@ def po_form(request, pk=None):
             "legal_reps_json": _legal_reps_json(),
             "issuer_meta_json": _issuer_meta_json(),
             "products": Product.objects.all(),
-            "sienge_departments": sienge_departments,
-            "sienge_payment_categories": sienge_payment_categories,
+            "sienge_departments": get_departments(),
+            "sienge_obras": get_obras(),
+            "sienge_obra_cost_centers_json": json.dumps(get_obra_cost_centers_map()),
+            "sienge_payment_categories": get_payment_categories(),
         },
     )
 
