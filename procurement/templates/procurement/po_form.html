@@ -170,7 +170,7 @@
                 <select id="sienge_obra_id" name="sienge_obra_id">
                     <option value="">— Selecione a obra —</option>
                     {% for obra in sienge_obras %}
-                        <option value="{{ obra.id }}"{% if po.sienge_obra_id|stringformat:"s" == obra.id|stringformat:"s" %} selected{% endif %}>{{ obra.name }}</option>
+                        <option value="{{ obra.id }}"{% if po.sienge_obra_id|stringformat:"s" == obra.id|stringformat:"s" %} selected{% endif %}>{{ obra.id }} — {{ obra.name }}</option>
                     {% endfor %}
                 </select>
             </div>
