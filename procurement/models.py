@@ -192,6 +192,9 @@ class PO(models.Model):
         verbose_name="Secondary Signer",
     )
     sienge_bill_id = models.IntegerField(null=True, blank=True, verbose_name="Sienge Bill ID")
+    sienge_cost_center_id = models.IntegerField(null=True, blank=True, verbose_name="Sienge Cost Center ID")
+    sienge_department_id = models.IntegerField(null=True, blank=True, verbose_name="Sienge Department ID")
+    sienge_payment_category_id = models.CharField(max_length=50, null=True, blank=True, verbose_name="Sienge Payment Category ID")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

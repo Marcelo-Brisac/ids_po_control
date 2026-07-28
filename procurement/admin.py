@@ -117,5 +117,5 @@ class POAdmin(admin.ModelAdmin):
         (None, {"fields": ("po_number", "contract_number", "issued_at")}),
         ("Parties", {"fields": ("issuer", "supplier", "signer_primary", "signer_secondary")}),
         ("Shipping", {"fields": ("requested_delivery_date", "incoterms", "port", "warranty")}),
-        ("Sienge", {"fields": ("sienge_bill_id",)}),
+        ("Sienge", {"fields": ("sienge_bill_id", "sienge_cost_center_id", "sienge_department_id", "sienge_payment_category_id")}),
     )

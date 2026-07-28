@@ -104,6 +104,9 @@ def po_form(request, pk=None):
             "warranty": request.POST.get("warranty", "").strip(),
             "signer_primary_id": request.POST.get("signer_primary") or None,
             "signer_secondary_id": request.POST.get("signer_secondary") or None,
+            "sienge_cost_center_id": request.POST.get("sienge_cost_center_id") or None,
+            "sienge_department_id": request.POST.get("sienge_department_id") or None,
+            "sienge_payment_category_id": request.POST.get("sienge_payment_category_id") or None,
         }
 
         # Parse items
@@ -165,6 +168,7 @@ def po_form(request, pk=None):
         if errors:
             for e in errors:
                 messages.error(request, e)
+            from procurement.sienge_db import get_departments, get_payment_categories
             issuers = Issuer.objects.all()
             suppliers = Supplier.objects.all()
             return render(
@@ -179,6 +183,8 @@ def po_form(request, pk=None):
                     "legal_reps_json": _legal_reps_json(),
                     "issuer_meta_json": _issuer_meta_json(),
                     "products": Product.objects.all(),
+                    "sienge_departments": get_departments(),
+                    "sienge_payment_categories": get_payment_categories(),
                 },
             )
 
@@ -195,6 +201,9 @@ def po_form(request, pk=None):
             po.warranty = po_data["warranty"]
             po.signer_primary_id = po_data["signer_primary_id"]
             po.signer_secondary_id = po_data["signer_secondary_id"]
+            po.sienge_cost_center_id = po_data["sienge_cost_center_id"]
+            po.sienge_department_id = po_data["sienge_department_id"]
+            po.sienge_payment_category_id = po_data["sienge_payment_category_id"]
             po.save()
             po.items.all().delete()
             po.payment_terms.all().delete()
@@ -210,6 +219,10 @@ def po_form(request, pk=None):
         messages.success(request, f"PO {po.po_number} saved successfully.")
         return redirect("po_detail", pk=po.pk)
 
+    from procurement.sienge_db import get_departments, get_payment_categories
+    sienge_departments = get_departments()
+    sienge_payment_categories = get_payment_categories()
+
     issuers = Issuer.objects.all()
     suppliers = Supplier.objects.all()
     return render(
@@ -224,6 +237,8 @@ def po_form(request, pk=None):
             "legal_reps_json": _legal_reps_json(),
             "issuer_meta_json": _issuer_meta_json(),
             "products": Product.objects.all(),
+            "sienge_departments": sienge_departments,
+            "sienge_payment_categories": sienge_payment_categories,
         },
     )
 
@@ -624,31 +639,37 @@ def po_sienge_send(request, pk):
         messages.error(request, "PO has no payment terms — cannot create bill in Sienge.")
         return redirect("po_detail", pk=po.pk)
 
-    fin_cat_id = (
-        po.product.financial_category_purchase
-        if po.product and po.product.financial_category_purchase
-        else None
-    )
-
-    installments = []
-    for term in terms:
-        installment = {
-            "dueDate": term.expected_date.isoformat(),
-            "netValue": float((term.percentage_due / 100) * po.total),
-            "description": f"{po.po_number} – {term.event_name}",
-        }
-        if fin_cat_id:
-            installment["financialCategoryId"] = fin_cat_id
-        installments.append(installment)
+    first_due = terms[0].expected_date.isoformat()
 
     payload = {
-        "companyId": po.issuer.sienge_company_id,
+        "debtorId": po.issuer.sienge_company_id,
         "creditorId": po.supplier.sienge_creditor_id,
-        "documentId": "PO",
-        "documentNumber": po.po_number,
+        "documentIdentificationId": "PO",
+        "documentNumber": po.po_number[:20],
         "issueDate": po.issued_at.isoformat(),
-        "installments": installments,
+        "installmentsNumber": len(terms),
+        "indexId": 0,
+        "baseDate": po.issued_at.isoformat(),
+        "dueDate": first_due,
+        "billDate": po.issued_at.isoformat(),
+        "totalInvoiceAmount": float(po.total),
+        "notes": f"PO {po.po_number}"[:500],
+        "discount": 0,
     }
+
+    if po.sienge_payment_category_id and po.sienge_cost_center_id:
+        payload["budgetCategories"] = [
+            {
+                "costCenterId": po.sienge_cost_center_id,
+                "paymentCategoriesId": po.sienge_payment_category_id,
+                "percentage": 100.0,
+            }
+        ]
+
+    if po.sienge_department_id:
+        payload["departmentsCost"] = [
+            {"departmentId": po.sienge_department_id, "percentage": 100.0}
+        ]
 
     url = "https://api.sienge.com.br/ebmengenharia/public/api/v1/bills"
     headers = {
