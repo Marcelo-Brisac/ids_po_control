@@ -172,9 +172,7 @@
                     <option value="">— Select department —</option>
                     {% for dept_id, dept_name in sienge_departments.items %}
                         <option value="{{ dept_id }}"{% if po.sienge_department_id|stringformat:"s" == dept_id|stringformat:"s" %} selected{% endif %}>{{ dept_name }}</option>
-                    {% empty %}
-                        <option value="{{ po.sienge_department_id|default:'' }}" selected>{{ po.sienge_department_id|default:'(no data — enter ID manually)' }}</option>
-                    {% endempty %}
+                    {% endfor %}
                 </select>
             </div>
             <div class="form-group">
@@ -183,9 +181,7 @@
                     <option value="">— Select category —</option>
                     {% for cat_id, cat_name in sienge_payment_categories.items %}
                         <option value="{{ cat_id }}"{% if po.sienge_payment_category_id == cat_id %} selected{% endif %}>{{ cat_name }}</option>
-                    {% empty %}
-                        <option value="{{ po.sienge_payment_category_id|default:'' }}" selected>{{ po.sienge_payment_category_id|default:'(no data — enter ID manually)' }}</option>
-                    {% endempty %}
+                    {% endfor %}
                 </select>
             </div>
         </div>
