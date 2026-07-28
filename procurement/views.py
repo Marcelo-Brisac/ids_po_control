@@ -661,6 +661,9 @@ def po_sienge_send(request, pk):
         resp = http_requests.post(url, json=payload, headers=headers, timeout=30)
         resp.raise_for_status()
         data = resp.json()
+    except http_requests.HTTPError as exc:
+        messages.error(request, f"Sienge API error: {exc} — {resp.text}")
+        return redirect("po_detail", pk=po.pk)
     except Exception as exc:
         messages.error(request, f"Sienge API error: {exc}")
         return redirect("po_detail", pk=po.pk)
