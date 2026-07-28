@@ -29,7 +29,6 @@ def get_departments() -> dict:
     """
     return {
         11: "PRODUTOS",
-        6:  "IDS SERVICE",
         12: "IDS SERVICE",
     }
 
