@@ -27,6 +27,7 @@ from db.models import (
     AccountReceivable,
     BankMovement,
     Company,
+    CostCenter,
     DepartmentAppropriation,
     FinancialCategory,
     FxRate,
@@ -247,6 +248,57 @@ def get_financial_categories() -> dict[int, str]:
             if raw_id.isdigit() and r.name is not None:
                 result[int(raw_id)] = str(r.name)
         return result
+    finally:
+        session.close()
+
+
+# ── Obras ────────────────────────────────────────────────────────────────────
+
+def get_obras() -> list[dict]:
+    """
+    Obras ativas (type='2'), excluindo as da EXCLUDE_LIST de common.py.
+    Retorna list[dict] com campos: id, name, commercial_name, building_status.
+    """
+    from common import EXCLUDE_LIST
+
+    session = get_session()
+    try:
+        rows = (
+            session.query(CostCenter)
+            .filter(
+                CostCenter.type == "2",
+                CostCenter.id.notin_(EXCLUDE_LIST),
+            )
+            .order_by(CostCenter.id)
+            .all()
+        )
+        return [
+            {
+                "id": r.id,
+                "name": r.name,
+                "commercial_name": r.commercial_name,
+                "building_status": r.building_status,
+            }
+            for r in rows
+        ]
+    finally:
+        session.close()
+
+
+def get_cost_centers_for_obra(obra_id: int) -> list[dict]:
+    """
+    Centros de custo associados a uma obra.
+    Retorna list[dict] com campos: id, name (extraídos de raw_data.associatedCostCenters).
+    """
+    session = get_session()
+    try:
+        row = session.get(CostCenter, obra_id)
+        if row is None or row.raw_data is None:
+            return []
+        return [
+            {"id": cc["id"], "name": cc["name"]}
+            for cc in row.raw_data.get("associatedCostCenters", [])
+        ]
     finally:
         session.close()
 
