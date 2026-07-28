@@ -11,17 +11,15 @@ import psycopg2
 
 logger = logging.getLogger(__name__)
 
-_CONN_PARAMS = dict(
-    host="186.195.54.70",
-    port=20000,
-    dbname="sienge",
-    user="cashflow_app",
-    connect_timeout=5,
-)
-
-
 def _connect():
-    return psycopg2.connect(**_CONN_PARAMS, password=os.environ.get("CASHFLOW_DB_PASSWORD", ""))
+    return psycopg2.connect(
+        host=os.environ.get("CASHFLOW_DB_HOST", "186.195.54.70"),
+        port=int(os.environ.get("CASHFLOW_DB_PORT", "20000")),
+        dbname=os.environ.get("CASHFLOW_DB_NAME", "sienge"),
+        user=os.environ.get("CASHFLOW_DB_USER", "cashflow_app"),
+        password=os.environ.get("CASHFLOW_DB_PASSWORD", ""),
+        connect_timeout=5,
+    )
 
 
 def get_departments() -> dict:
