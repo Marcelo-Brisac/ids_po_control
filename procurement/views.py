@@ -657,15 +657,18 @@ def po_sienge_send(request, pk):
         "Authorization": f"Basic {auth_key}",
     }
 
+    import json as _json
     try:
         resp = http_requests.post(url, json=payload, headers=headers, timeout=30)
         resp.raise_for_status()
         data = resp.json()
     except http_requests.HTTPError as exc:
         messages.error(request, f"Sienge API error: {exc} — {resp.text}")
+        messages.warning(request, f"Payload enviado: {_json.dumps(payload, default=str, indent=2)}")
         return redirect("po_detail", pk=po.pk)
     except Exception as exc:
         messages.error(request, f"Sienge API error: {exc}")
+        messages.warning(request, f"Payload enviado: {_json.dumps(payload, default=str, indent=2)}")
         return redirect("po_detail", pk=po.pk)
 
     bill_id = data.get("billId") or data.get("id")
