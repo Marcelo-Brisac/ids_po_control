@@ -24,23 +24,14 @@ def _connect():
 
 def get_departments() -> dict:
     """
-    Returns {department_id: department_name} from Sienge replica.
-    Used to populate the Department dropdown in the PO form.
+    Returns {department_id: department_name} — only IDS-relevant departments.
+    IDs confirmed from Sienge replica on 2026-07-28.
     """
-    try:
-        conn = _connect()
-        with conn, conn.cursor() as cur:
-            cur.execute("""
-                SELECT DISTINCT department_id, department_name
-                FROM department_appropriations
-                WHERE department_id IS NOT NULL
-                  AND department_name IS NOT NULL
-                ORDER BY department_name
-            """)
-            return {row[0]: row[1] for row in cur.fetchall()}
-    except Exception:
-        logger.exception("sienge_db.get_departments failed")
-        return {}
+    return {
+        11: "PRODUTOS",
+        6:  "IDS SERVICE",
+        12: "IDS SERVICE",
+    }
 
 
 def get_payment_categories() -> dict:
