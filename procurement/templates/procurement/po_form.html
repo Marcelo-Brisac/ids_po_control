@@ -353,14 +353,33 @@
             return;
         }
 
+        function toDecimal(val) {
+            // Accept both "1,5" and "1.5" — strip thousand-separators, normalize decimal comma
+            var s = String(val || '0').trim();
+            // If both . and , present, the one before last digit group is thousands separator
+            if (s.indexOf(',') !== -1 && s.indexOf('.') !== -1) {
+                // e.g. "1.234,56" → remove . then replace , with .
+                // e.g. "1,234.56" → just remove ,
+                if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+                    s = s.replace(/\./g, '').replace(',', '.');
+                } else {
+                    s = s.replace(/,/g, '');
+                }
+            } else {
+                s = s.replace(',', '.');
+            }
+            var n = parseFloat(s);
+            return isNaN(n) ? '0' : n.toString();
+        }
+
         document.querySelectorAll('[data-item-hidden]').forEach(function(el) { el.remove(); });
         const form = e.target;
         validRows.forEach(function(row, i) {
             [
                 ['item_model_'       + i, row[0] || ''],
                 ['item_description_' + i, row[1] || ''],
-                ['item_qty_'         + i, row[2] || '0'],
-                ['item_price_'       + i, row[3] || '0'],
+                ['item_qty_'         + i, toDecimal(row[2])],
+                ['item_price_'       + i, toDecimal(row[3])],
                 ['item_currency_'    + i, row[4] || 'USD'],
             ].forEach(function(pair) {
                 const inp = document.createElement('input');

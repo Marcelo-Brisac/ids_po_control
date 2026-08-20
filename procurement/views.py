@@ -110,16 +110,31 @@ def po_form(request, pk=None):
             "sienge_payment_category_id": request.POST.get("sienge_payment_category_id") or None,
         }
 
+        def _to_decimal(val: str) -> str:
+            """Normalise user-typed numbers: accept comma or period as decimal separator."""
+            s = val.strip().replace(" ", "")
+            if "," in s and "." in s:
+                if s.rindex(",") > s.rindex("."):   # 1.234,56 style
+                    s = s.replace(".", "").replace(",", ".")
+                else:                                # 1,234.56 style
+                    s = s.replace(",", "")
+            else:
+                s = s.replace(",", ".")
+            try:
+                return str(float(s))
+            except ValueError:
+                return "0"
+
         # Parse items
         item_count = int(request.POST.get("item-count", 0))
         parsed_items = []
         for i in range(item_count):
             model = request.POST.get(f"item_model_{i}", "").strip()
             desc = request.POST.get(f"item_description_{i}", "").strip()
-            qty = request.POST.get(f"item_qty_{i}", "")
-            price = request.POST.get(f"item_price_{i}", "")
+            qty = _to_decimal(request.POST.get(f"item_qty_{i}", "0"))
+            price = _to_decimal(request.POST.get(f"item_price_{i}", "0"))
             currency = request.POST.get(f"item_currency_{i}", "USD")
-            if model and qty and price:
+            if model and float(qty) >= 0 and float(price) >= 0:
                 parsed_items.append({
                     "commercial_model_name": model,
                     "description": desc,
