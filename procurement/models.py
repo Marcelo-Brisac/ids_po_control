@@ -7,7 +7,7 @@ class Issuer(models.Model):
     PO_PREFIX_CHOICES = [("IDS", "IDS"), ("EBM", "EBM"), ("IDSSE", "IDSSE")]
     PO_SUFFIX_CHOICES = [
         ("PA", "PA"), ("HK", "HK"), ("PE", "PE"), ("CL", "CL"),
-        ("MX", "MX"), ("BR", "BR"), ("AR", "AR"), ("US", "US"),
+        ("CO", "CO"), ("MX", "MX"), ("BR", "BR"), ("AR", "AR"), ("US", "US"),
     ]
 
     name = models.CharField(max_length=255)
