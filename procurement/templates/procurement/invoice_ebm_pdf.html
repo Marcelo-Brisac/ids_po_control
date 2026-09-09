@@ -154,17 +154,17 @@ tfoot td {
 <div class="parties">
     <div class="party">
         <div class="party-label">From (Seller)</div>
-        <div class="party-name">{{ po.issuer.name }}</div>
+        <div class="party-name">{{ po.counterparty.name }}</div>
         <div class="party-detail">
-            {{ po.issuer.address }}{% if po.issuer.tax_id %}<br>Tax ID: {{ po.issuer.tax_id }}{% endif %}
-            {% for email in po.issuer.emails.all %}<br>{{ email.email }}{% endfor %}
+            {{ po.counterparty.address }}{% if po.counterparty.tax_id %}<br>Tax ID: {{ po.counterparty.tax_id }}{% endif %}
         </div>
     </div>
     <div class="party">
         <div class="party-label">Bill To (Customer)</div>
-        <div class="party-name">{{ po.counterparty.name }}</div>
+        <div class="party-name">{{ po.issuer.name }}</div>
         <div class="party-detail">
-            {{ po.counterparty.address }}{% if po.counterparty.tax_id %}<br>Tax ID: {{ po.counterparty.tax_id }}{% endif %}
+            {{ po.issuer.address }}{% if po.issuer.tax_id %}<br>Tax ID: {{ po.issuer.tax_id }}{% endif %}
+            {% for email in po.issuer.emails.all %}<br>{{ email.email }}{% endfor %}
         </div>
     </div>
 </div>
@@ -250,11 +250,11 @@ tfoot td {
 </table>
 {% endif %}
 
-{% if issuer_accounts %}
+{% if counterparty_accounts %}
 <h2>Remittance Instructions</h2>
 <div class="bank-grid">
     <div class="bank-section">
-        {% for acc in issuer_accounts %}
+        {% for acc in counterparty_accounts %}
         <div class="bank-entry">
             {% if acc.intermediate_bank_name %}
             <div style="margin-bottom:4px;">
