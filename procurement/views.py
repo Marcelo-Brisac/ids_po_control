@@ -18,6 +18,7 @@ from .mail import send_signing_emails
 AVAILABLE_TEMPLATES = [
     {"id": "ids_standard", "label": "IDS Standard (PO)", "file": "procurement/po_pdf.html"},
     {"id": "ids_invoice", "label": "IDS Invoice", "file": "procurement/invoice_pdf.html"},
+    {"id": "ebm_invoice", "label": "EBM Invoice", "file": "procurement/invoice_ebm_pdf.html"},
 ]
 
 
@@ -47,6 +48,7 @@ def _generate_pdf_bytes(po, template_file):
             "currency": currency,
             "total": total,
             "logo_b64": _logo_b64("logo_ids.png"),
+            "logo_ebm_b64": _logo_b64("logo_ebm.png"),
         },
     )
     return HTML(string=html_string).write_pdf()
