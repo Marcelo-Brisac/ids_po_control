@@ -5,8 +5,8 @@ from .models import (
     BankAccount,
     LegalRepresentative,
     Product,
-    Supplier,
-    SupplierBankAccount,
+    Counterparty,
+    CounterpartyBankAccount,
     PO,
     POItem,
     POPaymentTerm,
@@ -51,16 +51,16 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ["code", "description"]
 
 
-class SupplierBankAccountInline(admin.StackedInline):
-    model = SupplierBankAccount
+class CounterpartyBankAccountInline(admin.StackedInline):
+    model = CounterpartyBankAccount
     extra = 1
 
 
-@admin.register(Supplier)
-class SupplierAdmin(admin.ModelAdmin):
+@admin.register(Counterparty)
+class CounterpartyAdmin(admin.ModelAdmin):
     list_display = ["name", "tax_id", "sienge_creditor_id"]
     search_fields = ["name", "tax_id"]
-    inlines = [SupplierBankAccountInline]
+    inlines = [CounterpartyBankAccountInline]
 
 
 class POItemInline(admin.TabularInline):
@@ -103,19 +103,20 @@ class POGeneratedPDFAdmin(admin.ModelAdmin):
 class POAdmin(admin.ModelAdmin):
     list_display = [
         "po_number",
-        "supplier",
+        "document_type",
+        "counterparty",
         "issued_at",
         "total",
         "requested_delivery_date",
         "sienge_bill_id",
     ]
-    list_filter = ["issued_at", "supplier"]
-    search_fields = ["po_number", "contract_number", "supplier__name"]
+    list_filter = ["issued_at", "document_type", "counterparty"]
+    search_fields = ["po_number", "contract_number", "counterparty__name"]
     date_hierarchy = "issued_at"
     inlines = [POItemInline, POPaymentTermInline, POGeneratedPDFInline]
     fieldsets = (
-        (None, {"fields": ("po_number", "contract_number", "issued_at")}),
-        ("Parties", {"fields": ("issuer", "supplier", "signer_primary", "signer_secondary")}),
+        (None, {"fields": ("document_type", "po_number", "contract_number", "issued_at")}),
+        ("Parties", {"fields": ("issuer", "counterparty", "signer_primary", "signer_secondary")}),
         ("Shipping", {"fields": ("requested_delivery_date", "incoterms", "port", "warranty")}),
         ("Sienge", {"fields": ("sienge_bill_id", "sienge_obra_id", "sienge_cost_center_id", "sienge_department_id", "sienge_payment_category_id")}),
     )

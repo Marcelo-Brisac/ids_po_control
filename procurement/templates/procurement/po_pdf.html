@@ -167,10 +167,10 @@ tfoot td {
         </div>
     </div>
     <div class="party">
-        <div class="party-label">To (Supplier)</div>
-        <div class="party-name">{{ po.supplier.name }}</div>
+        <div class="party-label">To (Counterparty)</div>
+        <div class="party-name">{{ po.counterparty.name }}</div>
         <div class="party-detail">
-            {{ po.supplier.address }}{% if po.supplier.tax_id %}<br>Tax ID: {{ po.supplier.tax_id }}{% endif %}
+            {{ po.counterparty.address }}{% if po.counterparty.tax_id %}<br>Tax ID: {{ po.counterparty.tax_id }}{% endif %}
         </div>
     </div>
 </div>
@@ -256,11 +256,11 @@ tfoot td {
 </table>
 {% endif %}
 
-{% if supplier_accounts %}
+{% if counterparty_accounts %}
 <h2>Bank Accounts</h2>
 <div class="bank-grid">
     <div class="bank-section">
-        {% for acc in supplier_accounts %}
+        {% for acc in counterparty_accounts %}
         <div class="bank-entry">
             {% if acc.intermediate_bank_name %}
             <div style="margin-bottom:4px;">

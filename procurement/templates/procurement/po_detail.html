@@ -55,10 +55,10 @@
             <div class="detail-field"><span class="detail-label">Tax ID:</span><span class="detail-value">{{ po.issuer.tax_id }}</span></div>
             <div class="detail-field"><span class="detail-label">Address:</span><span class="detail-value">{{ po.issuer.address }}</span></div>
             <div class="detail-field"><span class="detail-label">Email:</span><span class="detail-value">{% for email in po.issuer.emails.all %}{{ email.email }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</span></div>
-            <h4 style="font-size:0.85rem; color:#718096; margin:1rem 0 0.25rem;">SUPPLIER</h4>
-            <div class="detail-field"><span class="detail-label">Name:</span><span class="detail-value">{{ po.supplier.name }}</span></div>
-            <div class="detail-field"><span class="detail-label">Tax ID:</span><span class="detail-value">{{ po.supplier.tax_id }}</span></div>
-            <div class="detail-field"><span class="detail-label">Address:</span><span class="detail-value">{{ po.supplier.address }}</span></div>
+            <h4 style="font-size:0.85rem; color:#718096; margin:1rem 0 0.25rem;">COUNTERPARTY</h4>
+            <div class="detail-field"><span class="detail-label">Name:</span><span class="detail-value">{{ po.counterparty.name }}</span></div>
+            <div class="detail-field"><span class="detail-label">Tax ID:</span><span class="detail-value">{{ po.counterparty.tax_id }}</span></div>
+            <div class="detail-field"><span class="detail-label">Address:</span><span class="detail-value">{{ po.counterparty.address }}</span></div>
         </div>
     </div>
 </div>
@@ -146,8 +146,8 @@
             {% endfor %}
         </div>
         <div>
-            <h3 style="font-size:1rem; margin-bottom:0.5rem;">Supplier</h3>
-            {% for acc in po.supplier.bank_accounts.all %}
+            <h3 style="font-size:1rem; margin-bottom:0.5rem;">Counterparty</h3>
+            {% for acc in po.counterparty.bank_accounts.all %}
             <div style="padding:0.5rem; background:#f7fafc; border-radius:4px; margin-bottom:0.5rem; font-size:0.875rem;">
                 {% if acc.intermediate_bank_name %}
                 <div style="margin-bottom:0.4rem;"><span style="color:#718096; font-size:0.8rem;">Intermediate Bank</span><br>

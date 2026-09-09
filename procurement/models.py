@@ -97,22 +97,28 @@ class Product(models.Model):
         super().save(*args, **kwargs)
 
 
-class Supplier(models.Model):
+class Counterparty(models.Model):
     name = models.CharField(max_length=255)
     address = models.TextField()
     tax_id = models.CharField(max_length=50, verbose_name="Tax ID", blank=True)
-    sienge_creditor_id = models.IntegerField(null=True, verbose_name="Sienge Creditor ID")
+    sienge_creditor_id = models.IntegerField(null=True, blank=True, verbose_name="Sienge Creditor ID")
 
     class Meta:
         ordering = ["name"]
+        verbose_name = "Counterparty"
+        verbose_name_plural = "Counterparties"
 
     def __str__(self):
         return self.name
 
 
-class SupplierBankAccount(models.Model):
-    supplier = models.ForeignKey(
-        Supplier, on_delete=models.CASCADE, related_name="bank_accounts"
+# Keep old name as alias so existing migrations don't break at import time
+Supplier = Counterparty
+
+
+class CounterpartyBankAccount(models.Model):
+    counterparty = models.ForeignKey(
+        Counterparty, on_delete=models.CASCADE, related_name="bank_accounts"
     )
     intermediate_bank_name = models.CharField(max_length=255, blank=True)
     intermediate_bank_address = models.TextField(blank=True)
@@ -129,11 +135,15 @@ class SupplierBankAccount(models.Model):
     beneficiary_customer_account = models.CharField(max_length=100, blank=True)
 
     class Meta:
-        verbose_name_plural = "Supplier bank accounts"
+        verbose_name_plural = "Counterparty bank accounts"
         ordering = ["beneficiary_bank_name"]
 
     def __str__(self):
-        return f"{self.supplier.name} – {self.beneficiary_bank_name or f'Bank account #{self.pk}'}"
+        return f"{self.counterparty.name} – {self.beneficiary_bank_name or f'Bank account #{self.pk}'}"
+
+
+# Keep old name as alias so existing migrations don't break at import time
+SupplierBankAccount = CounterpartyBankAccount
 
 
 class PO(models.Model):
@@ -151,7 +161,12 @@ class PO(models.Model):
         ("CIF", "CIF – Cost Insurance and Freight"),
     ]
 
-    po_number = models.CharField(max_length=50, unique=True, verbose_name="PO Number")
+    DOCUMENT_TYPE_CHOICES = [("PO", "Purchase Order"), ("INV", "Invoice")]
+
+    document_type = models.CharField(
+        max_length=3, choices=DOCUMENT_TYPE_CHOICES, default="PO", verbose_name="Document Type"
+    )
+    po_number = models.CharField(max_length=50, unique=True, verbose_name="PO/Invoice Number")
     product = models.ForeignKey(
         "Product",
         on_delete=models.PROTECT,
@@ -164,8 +179,8 @@ class PO(models.Model):
     issuer = models.ForeignKey(
         Issuer, on_delete=models.PROTECT, related_name="purchase_orders"
     )
-    supplier = models.ForeignKey(
-        Supplier, on_delete=models.PROTECT, related_name="purchase_orders"
+    counterparty = models.ForeignKey(
+        Counterparty, on_delete=models.PROTECT, related_name="purchase_orders"
     )
     requested_delivery_date = models.DateField(
         blank=True, null=True, verbose_name="Lead Time Requested"

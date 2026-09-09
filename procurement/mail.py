@@ -66,7 +66,7 @@ def send_signing_emails(po, links):
 
 def _build_signing_email_html(po, signer_name, signing_link):
     issuer_name = po.issuer.name if po.issuer else ""
-    supplier_name = po.supplier.name if po.supplier else ""
+    counterparty_name = po.counterparty.name if po.counterparty else ""
 
     link_block = (
         f'<p style="margin:24px 0;">'
@@ -94,7 +94,7 @@ def _build_signing_email_html(po, signer_name, signing_link):
             <tr><td><strong>PO:</strong> {po.po_number}</td></tr>
             {"<tr><td><strong>Contrato:</strong> " + po.contract_number + "</td></tr>" if po.contract_number else ""}
             <tr><td><strong>Emitente:</strong> {issuer_name}</td></tr>
-            <tr><td><strong>Fornecedor:</strong> {supplier_name}</td></tr>
+            <tr><td><strong>Contraparte:</strong> {counterparty_name}</td></tr>
           </table>
           <p>Por favor, acesse o link abaixo para revisar e assinar o documento:</p>
           {link_block}

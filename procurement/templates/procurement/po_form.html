@@ -23,6 +23,13 @@
         <h2>Order Details</h2>
         <div class="form-row">
             <div class="form-group">
+                <label for="document_type">Document Type *</label>
+                <select id="document_type" name="document_type" required>
+                    <option value="PO" {% if po.document_type != 'INV' %}selected{% endif %}>Purchase Order</option>
+                    <option value="INV" {% if po.document_type == 'INV' %}selected{% endif %}>Invoice</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="product">Product *</label>
                 <select id="product" name="product" required>
                     <option value="">— Select product —</option>
@@ -58,11 +65,11 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="supplier">Supplier *</label>
-                <select id="supplier" name="supplier" required>
+                <label for="counterparty">Counterparty *</label>
+                <select id="counterparty" name="counterparty" required>
                     <option value="">— Select —</option>
-                    {% for supplier in suppliers %}
-                    <option value="{{ supplier.pk }}" {% if po.supplier_id == supplier.pk %}selected{% endif %}>{{ supplier.name }}</option>
+                    {% for cp in counterparties %}
+                    <option value="{{ cp.pk }}" {% if po.counterparty_id == cp.pk %}selected{% endif %}>{{ cp.name }}</option>
                     {% endfor %}
                 </select>
             </div>

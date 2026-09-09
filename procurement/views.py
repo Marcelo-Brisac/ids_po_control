@@ -12,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.conf import settings
 
-from .models import Issuer, Supplier, PO, POItem, POPaymentTerm, LegalRepresentative, POGeneratedPDF, Product
+from .models import Issuer, Counterparty, PO, POItem, POPaymentTerm, LegalRepresentative, POGeneratedPDF, Product
 from .mail import send_signing_emails
 
 AVAILABLE_TEMPLATES = [
@@ -30,7 +30,7 @@ def _generate_pdf_bytes(po, template_file):
 
     items = list(po.items.all())
     payment_terms = list(po.payment_terms.all())
-    supplier_accounts = list(po.supplier.bank_accounts.all())
+    counterparty_accounts = list(po.counterparty.bank_accounts.all())
     currency = items[0].unit_price_currency if items else ""
     total = sum(item.line_total for item in items)
 
@@ -40,7 +40,7 @@ def _generate_pdf_bytes(po, template_file):
             "po": po,
             "items": items,
             "payment_terms": payment_terms,
-            "supplier_accounts": supplier_accounts,
+            "counterparty_accounts": counterparty_accounts,
             "currency": currency,
             "total": total,
             "logo_b64": _logo_b64("logo_ids.png"),
@@ -66,13 +66,13 @@ def _issuer_meta_json():
 
 @staff_member_required
 def po_list(request):
-    pos = PO.objects.select_related("supplier", "issuer").all()
+    pos = PO.objects.select_related("counterparty", "issuer").all()
     return render(request, "procurement/po_list.html", {"pos": pos})
 
 
 @staff_member_required
 def po_detail(request, pk):
-    po = get_object_or_404(PO.objects.select_related("supplier", "issuer"), pk=pk)
+    po = get_object_or_404(PO.objects.select_related("counterparty", "issuer"), pk=pk)
     return render(request, "procurement/po_detail.html", {"po": po})
 
 
@@ -97,7 +97,8 @@ def po_form(request, pk=None):
             "contract_number": request.POST.get("contract_number", "").strip(),
             "issued_at": request.POST.get("issued_at"),
             "issuer_id": request.POST.get("issuer"),
-            "supplier_id": request.POST.get("supplier"),
+            "document_type": request.POST.get("document_type", "PO"),
+            "counterparty_id": request.POST.get("counterparty"),
             "requested_delivery_date": request.POST.get("requested_delivery_date") or None,
             "incoterms": request.POST.get("incoterms", "").strip(),
             "port": request.POST.get("port", "").strip(),
@@ -167,8 +168,8 @@ def po_form(request, pk=None):
             errors.append("Issue Date is required.")
         if not po_data["issuer_id"]:
             errors.append("Issuer is required.")
-        if not po_data["supplier_id"]:
-            errors.append("Supplier is required.")
+        if not po_data["counterparty_id"]:
+            errors.append("Counterparty is required.")
         if not po_data["signer_primary_id"]:
             errors.append("Primary Signer is required.")
         if not parsed_items:
@@ -186,14 +187,14 @@ def po_form(request, pk=None):
                 messages.error(request, e)
             from procurement.sienge_db import get_departments, get_obras, get_obra_cost_centers_map, get_payment_categories
             issuers = Issuer.objects.all()
-            suppliers = Supplier.objects.all()
+            counterparties = Counterparty.objects.all()
             return render(
                 request,
                 "procurement/po_form.html",
                 {
                     "po": type("PO", (), po_data)(),
                     "issuers": issuers,
-                    "suppliers": suppliers,
+                    "counterparties": counterparties,
                     "items": [type("Item", (), d)() for d in parsed_items],
                     "payment_terms": [type("Term", (), d)() for d in parsed_terms],
                     "legal_reps_json": _legal_reps_json(),
@@ -212,7 +213,8 @@ def po_form(request, pk=None):
             po.contract_number = po_data["contract_number"]
             po.issued_at = po_data["issued_at"]
             po.issuer_id = po_data["issuer_id"]
-            po.supplier_id = po_data["supplier_id"]
+            po.document_type = po_data["document_type"]
+            po.counterparty_id = po_data["counterparty_id"]
             po.requested_delivery_date = po_data["requested_delivery_date"]
             po.incoterms = po_data["incoterms"]
             po.port = po_data["port"]
@@ -240,14 +242,14 @@ def po_form(request, pk=None):
 
     from procurement.sienge_db import get_departments, get_obras, get_obra_cost_centers_map, get_payment_categories
     issuers = Issuer.objects.all()
-    suppliers = Supplier.objects.all()
+    counterparties = Counterparty.objects.all()
     return render(
         request,
         "procurement/po_form.html",
         {
             "po": po,
             "issuers": issuers,
-            "suppliers": suppliers,
+            "counterparties": counterparties,
             "items": items,
             "payment_terms": payment_terms,
             "legal_reps_json": _legal_reps_json(),
@@ -300,7 +302,7 @@ def po_suggest_number(request):
 
 @staff_member_required
 def po_pdf_generate(request, pk):
-    po = get_object_or_404(PO.objects.select_related("supplier", "issuer"), pk=pk)
+    po = get_object_or_404(PO.objects.select_related("counterparty", "issuer"), pk=pk)
 
     if request.method == "POST":
         template_id = request.POST.get("template_id", "ids_standard")
@@ -627,7 +629,7 @@ def po_sienge_send(request, pk):
     import requests as http_requests
 
     po = get_object_or_404(
-        PO.objects.select_related("issuer", "supplier").prefetch_related("payment_terms"),
+        PO.objects.select_related("issuer", "counterparty").prefetch_related("payment_terms"),
         pk=pk,
     )
 
@@ -643,8 +645,8 @@ def po_sienge_send(request, pk):
         messages.error(request, f"Issuer '{po.issuer.name}' has no Sienge Company ID configured.")
         return redirect("po_detail", pk=po.pk)
 
-    if not po.supplier.sienge_creditor_id:
-        messages.error(request, f"Supplier '{po.supplier.name}' has no Sienge Creditor ID configured.")
+    if not po.counterparty.sienge_creditor_id:
+        messages.error(request, f"Counterparty '{po.counterparty.name}' has no Sienge Creditor ID configured.")
         return redirect("po_detail", pk=po.pk)
 
     auth_key = settings.SIENGE_AUTH_KEY
@@ -661,7 +663,7 @@ def po_sienge_send(request, pk):
 
     payload = {
         "debtorId": po.issuer.sienge_company_id,
-        "creditorId": po.supplier.sienge_creditor_id,
+        "creditorId": po.counterparty.sienge_creditor_id,
         "documentIdentificationId": "PO",
         "documentNumber": po.po_number[:20],
         "issueDate": po.issued_at.isoformat(),
