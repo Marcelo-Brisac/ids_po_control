@@ -76,6 +76,7 @@
                 <label for="incoterms">Incoterms</label>
                 <select id="incoterms" name="incoterms">
                     <option value="">— Select —</option>
+                    <option value="N/A" {% if po.incoterms == 'N/A' %}selected{% endif %}>N/A – Not Applicable (Services)</option>
                     <option value="EXW" {% if po.incoterms == 'EXW' %}selected{% endif %}>EXW – Ex Works</option>
                     <option value="FCA" {% if po.incoterms == 'FCA' %}selected{% endif %}>FCA – Free Carrier</option>
                     <option value="CPT" {% if po.incoterms == 'CPT' %}selected{% endif %}>CPT – Carriage Paid To</option>
