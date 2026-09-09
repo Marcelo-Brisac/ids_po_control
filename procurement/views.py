@@ -100,7 +100,6 @@ def po_form(request, pk=None):
             "contract_number": request.POST.get("contract_number", "").strip(),
             "issued_at": request.POST.get("issued_at"),
             "issuer_id": request.POST.get("issuer"),
-            "document_type": request.POST.get("document_type", "PO"),
             "counterparty_id": request.POST.get("counterparty"),
             "requested_delivery_date": request.POST.get("requested_delivery_date") or None,
             "incoterms": request.POST.get("incoterms", "").strip(),
@@ -216,7 +215,6 @@ def po_form(request, pk=None):
             po.contract_number = po_data["contract_number"]
             po.issued_at = po_data["issued_at"]
             po.issuer_id = po_data["issuer_id"]
-            po.document_type = po_data["document_type"]
             po.counterparty_id = po_data["counterparty_id"]
             po.requested_delivery_date = po_data["requested_delivery_date"]
             po.incoterms = po_data["incoterms"]

@@ -162,11 +162,7 @@ class PO(models.Model):
         ("CIF", "CIF – Cost Insurance and Freight"),
     ]
 
-    DOCUMENT_TYPE_CHOICES = [("PO", "Purchase Order"), ("INV", "Invoice")]
 
-    document_type = models.CharField(
-        max_length=3, choices=DOCUMENT_TYPE_CHOICES, default="PO", verbose_name="Document Type"
-    )
     po_number = models.CharField(max_length=50, unique=True, verbose_name="PO/Invoice Number")
     product = models.ForeignKey(
         "Product",

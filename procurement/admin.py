@@ -103,19 +103,18 @@ class POGeneratedPDFAdmin(admin.ModelAdmin):
 class POAdmin(admin.ModelAdmin):
     list_display = [
         "po_number",
-        "document_type",
         "counterparty",
         "issued_at",
         "total",
         "requested_delivery_date",
         "sienge_bill_id",
     ]
-    list_filter = ["issued_at", "document_type", "counterparty"]
+    list_filter = ["issued_at", "counterparty"]
     search_fields = ["po_number", "contract_number", "counterparty__name"]
     date_hierarchy = "issued_at"
     inlines = [POItemInline, POPaymentTermInline, POGeneratedPDFInline]
     fieldsets = (
-        (None, {"fields": ("document_type", "po_number", "contract_number", "issued_at")}),
+        (None, {"fields": ("po_number", "contract_number", "issued_at")}),
         ("Parties", {"fields": ("issuer", "counterparty", "signer_primary", "signer_secondary")}),
         ("Shipping", {"fields": ("requested_delivery_date", "incoterms", "port", "warranty")}),
         ("Sienge", {"fields": ("sienge_bill_id", "sienge_obra_id", "sienge_cost_center_id", "sienge_department_id", "sienge_payment_category_id")}),
