@@ -256,11 +256,11 @@ tfoot td {
 </table>
 {% endif %}
 
-{% if counterparty_accounts %}
+{% if issuer_accounts %}
 <h2>Remittance Instructions</h2>
 <div class="bank-grid">
     <div class="bank-section">
-        {% for acc in counterparty_accounts %}
+        {% for acc in issuer_accounts %}
         <div class="bank-entry">
             {% if acc.intermediate_bank_name %}
             <div style="margin-bottom:4px;">

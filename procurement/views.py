@@ -32,6 +32,7 @@ def _generate_pdf_bytes(po, template_file):
     items = list(po.items.all())
     payment_terms = list(po.payment_terms.all())
     counterparty_accounts = list(po.counterparty.bank_accounts.all())
+    issuer_accounts = list(po.issuer.bank_accounts.all())
     currency = items[0].unit_price_currency if items else ""
     total = sum(item.line_total for item in items)
 
@@ -42,6 +43,7 @@ def _generate_pdf_bytes(po, template_file):
             "items": items,
             "payment_terms": payment_terms,
             "counterparty_accounts": counterparty_accounts,
+            "issuer_accounts": issuer_accounts,
             "currency": currency,
             "total": total,
             "logo_b64": _logo_b64("logo_ids.png"),
