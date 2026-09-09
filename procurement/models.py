@@ -148,6 +148,7 @@ SupplierBankAccount = CounterpartyBankAccount
 
 class PO(models.Model):
     INCOTERMS_CHOICES = [
+        ("N/A", "N/A – Not Applicable (Services)"),
         ("EXW", "EXW – Ex Works"),
         ("FCA", "FCA – Free Carrier"),
         ("CPT", "CPT – Carriage Paid To"),
