@@ -16,7 +16,8 @@ from .models import Issuer, Counterparty, PO, POItem, POPaymentTerm, LegalRepres
 from .mail import send_signing_emails
 
 AVAILABLE_TEMPLATES = [
-    {"id": "ids_standard", "label": "IDS Standard", "file": "procurement/po_pdf.html"},
+    {"id": "ids_standard", "label": "IDS Standard (PO)", "file": "procurement/po_pdf.html"},
+    {"id": "ids_invoice", "label": "IDS Invoice", "file": "procurement/invoice_pdf.html"},
 ]
 
 

@@ -1,0 +1,324 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Invoice {{ po.po_number }}</title>
+<style>
+@page {
+    size: A4;
+    margin: 1.8cm 2cm;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 9.5pt;
+    color: #1a1a1a;
+    line-height: 1.45;
+}
+.header {
+    width: 100%;
+    border-bottom: 3px solid #2d3748;
+    padding-bottom: 12px;
+    margin-bottom: 10px;
+}
+.header-title {
+    font-size: 22pt;
+    font-weight: 700;
+    color: #2d3748;
+    letter-spacing: 0.05em;
+}
+.header-sub {
+    font-size: 11pt;
+    color: #4a5568;
+    margin-top: 4px;
+}
+.header-right {
+    text-align: right;
+    font-size: 9pt;
+    color: #4a5568;
+}
+.header-right div { margin-bottom: 3px; }
+
+/* Info row */
+.info-row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.info-item { min-width: 100px; }
+.info-label {
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #718096;
+    margin-bottom: 2px;
+}
+.info-value { font-weight: 600; font-size: 9.5pt; }
+
+/* Parties */
+.parties {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 20px;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    padding: 12px;
+    background: #f7fafc;
+}
+.party { flex: 1; }
+.party-label {
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #718096;
+    margin-bottom: 5px;
+}
+.party-name {
+    font-weight: 700;
+    font-size: 10.5pt;
+    color: #2d3748;
+    margin-bottom: 4px;
+}
+.party-detail { font-size: 8.5pt; color: #4a5568; line-height: 1.55; }
+
+/* Section titles */
+h2 {
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #2d3748;
+    border-bottom: 1.5px solid #a0aec0;
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+    margin-top: 18px;
+}
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+th {
+    background: #4a5568;
+    color: #fff;
+    padding: 7px 9px;
+    font-size: 8pt;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+td {
+    padding: 7px 9px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 9pt;
+    vertical-align: top;
+}
+tfoot td {
+    font-weight: 700;
+    border-top: 2px solid #2d3748;
+    border-bottom: none;
+    background: #edf2f7;
+}
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+
+/* Bank accounts */
+.bank-grid { display: flex; gap: 32px; margin-top: 6px; }
+.bank-section { flex: 1; }
+.bank-entry {
+    border: 1px solid #cbd5e0;
+    border-radius: 3px;
+    padding: 7px 9px;
+    margin-bottom: 6px;
+    font-size: 8.5pt;
+    background: #f7fafc;
+}
+.bank-name { font-weight: 700; margin-bottom: 2px; }
+
+.footer {
+    margin-top: 30px;
+    border-top: 1px solid #cbd5e0;
+    padding-top: 8px;
+    font-size: 7.5pt;
+    color: #a0aec0;
+    text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <img src="data:image/png;base64,{{ logo_b64 }}" style="float:right; max-height:40px; margin-left:16px;">
+    <div class="header-title">INVOICE</div>
+    <div style="clear:both;"></div>
+</div>
+<div style="display:table; width:100%; margin-bottom:16px;">
+    <div style="display:table-cell; width:50%;" class="header-sub"><strong>{{ po.po_number }}</strong></div>
+    <div style="display:table-cell; width:25%; font-size:9pt; color:#4a5568;">{% if po.contract_number %}<strong>Contract:</strong> {{ po.contract_number }}{% endif %}</div>
+    <div style="display:table-cell; width:25%; font-size:9pt; color:#4a5568;"><strong>Issued:</strong> {{ po.issued_at|date:"d M Y" }}</div>
+</div>
+
+<div class="parties">
+    <div class="party">
+        <div class="party-label">From (Seller)</div>
+        <div class="party-name">{{ po.issuer.name }}</div>
+        <div class="party-detail">
+            {{ po.issuer.address }}{% if po.issuer.tax_id %}<br>Tax ID: {{ po.issuer.tax_id }}{% endif %}
+            {% for email in po.issuer.emails.all %}<br>{{ email.email }}{% endfor %}
+        </div>
+    </div>
+    <div class="party">
+        <div class="party-label">Bill To (Customer)</div>
+        <div class="party-name">{{ po.counterparty.name }}</div>
+        <div class="party-detail">
+            {{ po.counterparty.address }}{% if po.counterparty.tax_id %}<br>Tax ID: {{ po.counterparty.tax_id }}{% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="info-row">
+    {% if po.requested_delivery_date %}
+    <div class="info-item">
+        <div class="info-label">Due Date</div>
+        <div class="info-value">{{ po.requested_delivery_date|date:"d M Y" }}</div>
+    </div>
+    {% endif %}
+    {% if po.incoterms %}
+    <div class="info-item">
+        <div class="info-label">Incoterms</div>
+        <div class="info-value">{{ po.get_incoterms_display }}</div>
+    </div>
+    {% endif %}
+    {% if po.port %}
+    <div class="info-item">
+        <div class="info-label">Port</div>
+        <div class="info-value">{{ po.port }}</div>
+    </div>
+    {% endif %}
+    {% if po.warranty %}
+    <div class="info-item">
+        <div class="info-label">Warranty</div>
+        <div class="info-value">{{ po.warranty }}</div>
+    </div>
+    {% endif %}
+</div>
+
+<h2>Items</h2>
+<table style="font-size:8pt;">
+    <thead>
+        <tr>
+            <th style="width:4%">#</th>
+            <th style="width:18%">Model</th>
+            <th style="width:38%">Description</th>
+            <th style="width:10%" class="text-center">Qty</th>
+            <th style="width:15%" class="text-right">Unit Price</th>
+            <th style="width:15%" class="text-right">Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ item.commercial_model_name }}</td>
+            <td>{{ item.description }}</td>
+            <td class="text-center">{{ item.quantity }}</td>
+            <td class="text-right">{{ item.unit_price_currency }} {{ item.unit_price|floatformat:2|intcomma }}</td>
+            <td class="text-right">{{ item.unit_price_currency }} {{ item.line_total|floatformat:2|intcomma }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="5" class="text-right">TOTAL DUE:</td>
+            <td class="text-right">{{ currency }} {{ total|floatformat:2|intcomma }}</td>
+        </tr>
+    </tfoot>
+</table>
+
+{% if payment_terms %}
+<h2>Payment Schedule</h2>
+<table>
+    <thead>
+        <tr>
+            <th style="width:45%">Event</th>
+            <th style="width:25%" class="text-right">% Due</th>
+            <th style="width:30%">Expected Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for term in payment_terms %}
+        <tr>
+            <td>{{ term.event_name }}</td>
+            <td class="text-right">{{ term.percentage_due }}%</td>
+            <td>{{ term.expected_date|date:"d M Y" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% if counterparty_accounts %}
+<h2>Remittance Instructions</h2>
+<div class="bank-grid">
+    <div class="bank-section">
+        {% for acc in counterparty_accounts %}
+        <div class="bank-entry">
+            {% if acc.intermediate_bank_name %}
+            <div style="margin-bottom:4px;">
+                <span style="font-size:7.5pt; color:#718096; text-transform:uppercase; letter-spacing:0.03em;">Intermediate Bank</span><br>
+                <span class="bank-name">{{ acc.intermediate_bank_name }}</span>
+                {% if acc.intermediate_bank_address %}<br>{{ acc.intermediate_bank_address }}{% endif %}
+                {% if acc.intermediate_bank_swift_address %}<br>SWIFT: {{ acc.intermediate_bank_swift_address }}{% endif %}
+                {% if acc.intermediate_bank_fed_aba %}<br>FED/ABA: {{ acc.intermediate_bank_fed_aba }}{% endif %}
+            </div>
+            {% endif %}
+            {% if acc.beneficiary_bank_name %}
+            <div style="margin-bottom:4px;">
+                <span style="font-size:7.5pt; color:#718096; text-transform:uppercase; letter-spacing:0.03em;">Beneficiary Bank</span><br>
+                <span class="bank-name">{{ acc.beneficiary_bank_name }}</span>
+                {% if acc.beneficiary_bank_address %}<br>{{ acc.beneficiary_bank_address }}{% endif %}
+                {% if acc.beneficiary_bank_swift_address %}<br>SWIFT: {{ acc.beneficiary_bank_swift_address }}{% endif %}
+                {% if acc.beneficiary_bank_account_number %}<br>Account No.: {{ acc.beneficiary_bank_account_number }}{% endif %}
+                {% if acc.beneficiary_bank_iban %}<br>IBAN: {{ acc.beneficiary_bank_iban }}{% endif %}
+            </div>
+            {% endif %}
+            {% if acc.beneficiary_customer_name %}
+            <div>
+                <span style="font-size:7.5pt; color:#718096; text-transform:uppercase; letter-spacing:0.03em;">Beneficiary Customer</span><br>
+                <span class="bank-name">{{ acc.beneficiary_customer_name }}</span>
+                {% if acc.beneficiary_customer_address %}<br>{{ acc.beneficiary_customer_address }}{% endif %}
+                {% if acc.beneficiary_customer_branch %}<br>Branch: {{ acc.beneficiary_customer_branch }}{% endif %}
+                {% if acc.beneficiary_customer_account %}<br>Account: {{ acc.beneficiary_customer_account }}{% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if po.signer_primary %}
+<h2>Authorized Signatures</h2>
+<div style="display:table; width:100%; margin-top:12px;">
+    <div style="display:table-cell; width:25%; vertical-align:bottom; padding-right:8px;">
+        <div style="border-bottom:1.5px solid #1a1a1a; height:48px; margin-bottom:6px;"></div>
+        <div style="font-weight:700; font-size:9.5pt;">{{ po.signer_primary.name }}</div>
+        <div style="font-size:8pt; color:#718096;">{% if po.signer_primary.email %}{{ po.signer_primary.email }}{% endif %}</div>
+    </div>
+    <div style="display:table-cell; width:25%;"></div>
+    {% if po.signer_secondary %}
+    <div style="display:table-cell; width:25%; vertical-align:bottom; padding-right:8px;">
+        <div style="border-bottom:1.5px solid #1a1a1a; height:48px; margin-bottom:6px;"></div>
+        <div style="font-weight:700; font-size:9.5pt;">{{ po.signer_secondary.name }}</div>
+        <div style="font-size:8pt; color:#718096;">{% if po.signer_secondary.email %}{{ po.signer_secondary.email }}{% endif %}</div>
+    </div>
+    <div style="display:table-cell; width:25%;"></div>
+    {% else %}
+    <div style="display:table-cell; width:50%;"></div>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="footer">Generated by Pigeon Procurement</div>
+
+</body>
+</html>
